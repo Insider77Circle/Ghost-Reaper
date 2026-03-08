@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghost Reaper — AI Threat Detection Cluster</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue:   #00aaff;
+      --blue2:  #0066ff;
+      --blue3:  #004499;
+      --cyan:   #00eeff;
+      --white:  #ffffff;
+      --dimw:   #c8dff0;
+      --bg:     #000a14;
+      --bg2:    #000f1e;
+      --bg3:    #001428;
+      --muted:  #6090b0;
+      --green:  #00ffcc;
+      --mono:   'Share Tech Mono', monospace;
+      --head:   'Orbitron', sans-serif;
+      --body:   'Inter', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--dimw); font-family: var(--body); overflow-x: hidden; }
+
+    #matrix { position: fixed; inset: 0; z-index: 0; opacity: .07; pointer-events: none; }
+
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.05) 2px, rgba(0,0,0,.05) 4px);
+      z-index: 1; pointer-events: none;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; inset: 0 0 auto 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(0,10,20,.88); backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(0,170,255,.2);
+    }
+    .nav-logo { font-family: var(--head); font-size: 1.15rem; font-weight: 900; color: var(--blue); text-shadow: 0 0 20px var(--blue); letter-spacing: 3px; }
+    .nav-logo span { color: var(--white); }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: .85rem; letter-spacing: 1px; text-transform: uppercase; transition: color .2s, text-shadow .2s; }
+    .nav-links a:hover { color: var(--cyan); text-shadow: 0 0 10px var(--cyan); }
+    .nav-cta { border: 1px solid var(--blue); color: var(--blue) !important; padding: .4rem 1rem; border-radius: 3px; transition: background .2s, box-shadow .2s !important; }
+    .nav-cta:hover { background: rgba(0,170,255,.12) !important; box-shadow: 0 0 15px rgba(0,170,255,.4) !important; }
+
+    /* ── HERO ── */
+    #hero {
+      position: relative; z-index: 2; min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 7rem 2rem 4rem;
+    }
+    .hero-badge {
+      font-family: var(--mono); font-size: .75rem; color: var(--green);
+      border: 1px solid rgba(0,255,204,.3); padding: .3rem .9rem;
+      border-radius: 20px; margin-bottom: 1.5rem; letter-spacing: 2px;
+      animation: pbadge 2.5s infinite;
+    }
+    @keyframes pbadge { 0%,100%{box-shadow:0 0 5px rgba(0,255,204,.2)} 50%{box-shadow:0 0 22px rgba(0,255,204,.6)} }
+
+    .hero-title { font-family: var(--head); font-size: clamp(2.8rem,9vw,6.5rem); font-weight: 900; line-height: 1; letter-spacing: 4px; margin-bottom: .5rem; }
+    .hero-title .ghost { color: var(--white); text-shadow: 0 0 30px rgba(255,255,255,.4); display: inline-block; }
+    .hero-title .reaper {
+      color: var(--blue);
+      text-shadow: 0 0 20px rgba(0,170,255,.9), 0 0 60px rgba(0,170,255,.4), 0 0 120px rgba(0,170,255,.2);
+      display: inline-block; animation: glitch 5s infinite;
+    }
+    @keyframes glitch {
+      0%,88%,100%{transform:translate(0,0) skew(0deg);filter:none}
+      89%{transform:translate(-3px,0) skew(-1deg);filter:hue-rotate(180deg)}
+      90%{transform:translate(3px,0) skew(1deg)}
+      91%{transform:translate(-1px,0);filter:none}
+      93%{transform:translate(2px,1px) skew(.5deg);filter:hue-rotate(90deg)}
+      95%{transform:translate(-2px,-1px);filter:none}
+    }
+
+    .hero-sub { font-family: var(--mono); font-size: clamp(.85rem,2vw,1.05rem); color: var(--cyan); margin-bottom: 1rem; text-shadow: 0 0 15px var(--cyan); letter-spacing: 2px; }
+    .hero-desc { max-width: 620px; color: var(--muted); font-size: 1rem; line-height: 1.75; margin-bottom: 2.5rem; }
+    .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+    .btn { font-family: var(--head); font-size: .78rem; letter-spacing: 2px; text-transform: uppercase; padding: .8rem 2rem; border-radius: 3px; text-decoration: none; cursor: pointer; border: none; transition: transform .2s, box-shadow .2s; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 0 25px rgba(0,170,255,.5); }
+    .btn-primary:hover { box-shadow: 0 0 45px rgba(0,170,255,.9); }
+    .btn-outline { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); box-shadow: 0 0 12px rgba(0,238,255,.15); }
+    .btn-outline:hover { box-shadow: 0 0 28px rgba(0,238,255,.5); }
+
+    /* hero terminal */
+    .hero-terminal { margin-top: 3rem; background: rgba(0,0,0,.75); border: 1px solid rgba(0,170,255,.3); border-radius: 8px; width: min(620px,90vw); text-align: left; overflow: hidden; box-shadow: 0 0 40px rgba(0,170,255,.08), 0 20px 60px rgba(0,0,0,.6); }
+    .tbar { background: rgba(0,170,255,.08); padding: .6rem 1rem; display: flex; align-items: center; gap: .5rem; border-bottom: 1px solid rgba(0,170,255,.2); }
+    .tdot { width: 12px; height: 12px; border-radius: 50%; }
+    .td-r{background:#ff5f57} .td-y{background:#febc2e} .td-g{background:#28c840}
+    .ttitle { font-family: var(--mono); font-size: .75rem; color: var(--muted); margin-left: .5rem; }
+    .tbody { padding: 1.2rem 1.5rem; font-family: var(--mono); font-size: .85rem; line-height: 1.8; min-height: 150px; }
+    .tp { color: var(--blue); } .tc { color: #fff; } .to { color: var(--green); } .ti { color: var(--cyan); } .tw { color: #ffcc00; }
+    .cursor { display: inline-block; width: 8px; height: 1em; background: var(--blue); vertical-align: text-bottom; animation: blink .8s step-end infinite; }
+    @keyframes blink { 50%{opacity:0} }
+
+    /* ── STATS ── */
+    #stats { position: relative; z-index: 2; padding: 3rem 2rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 3rem; border-top: 1px solid rgba(0,170,255,.15); border-bottom: 1px solid rgba(0,170,255,.15); background: linear-gradient(180deg,transparent,rgba(0,170,255,.04),transparent); }
+    .stat-item { text-align: center; }
+    .stat-num { font-family: var(--head); font-size: 2.5rem; font-weight: 900; color: var(--blue); text-shadow: 0 0 20px rgba(0,170,255,.6); }
+    .stat-label { font-family: var(--mono); font-size: .72rem; color: var(--muted); letter-spacing: 2px; margin-top: .3rem; }
+
+    /* ── SECTIONS ── */
+    section { position: relative; z-index: 2; padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .stag { font-family: var(--mono); font-size: .75rem; color: var(--blue); letter-spacing: 3px; text-transform: uppercase; margin-bottom: .5rem; }
+    .stitle { font-family: var(--head); font-size: clamp(1.8rem,5vw,3rem); font-weight: 700; color: var(--white); margin-bottom: 1rem; }
+    .stitle span { color: var(--blue); }
+    .ssub { color: var(--muted); max-width: 560px; line-height: 1.7; margin-bottom: 3rem; }
+
+    /* ── AGENT CARDS ── */
+    .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 1.5rem; }
+    .agent-card {
+      background: rgba(0,15,30,.8); border: 1px solid rgba(0,170,255,.15); border-radius: 8px; padding: 1.8rem;
+      position: relative; overflow: hidden;
+      transition: border-color .3s, transform .3s, box-shadow .3s;
+    }
+    .agent-card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,transparent,var(--blue),transparent); opacity:0; transition:opacity .3s; }
+    .agent-card:hover { border-color: rgba(0,170,255,.55); transform: translateY(-4px); box-shadow: 0 10px 40px rgba(0,170,255,.12); }
+    .agent-card:hover::before { opacity:1; }
+    .agent-icon { font-size: 2rem; margin-bottom: 1rem; display: block; }
+    .agent-role { font-family: var(--mono); font-size: .7rem; color: var(--blue); letter-spacing: 2px; margin-bottom: .4rem; }
+    .agent-name { font-family: var(--head); font-size: .95rem; color: var(--white); margin-bottom: .6rem; letter-spacing: 1px; }
+    .agent-desc { color: var(--muted); font-size: .88rem; line-height: 1.65; }
+    .agent-tags { margin-top: 1rem; display:flex; flex-wrap:wrap; gap:.4rem; }
+    .tag { font-family:var(--mono); font-size:.65rem; padding:.2rem .5rem; border-radius:3px; background:rgba(0,170,255,.08); border:1px solid rgba(0,170,255,.25); color:var(--blue); }
+
+    /* ── FLOW DIAGRAM ── */
+    #flow { text-align: center; }
+    .flow-box { display: inline-flex; flex-direction: column; align-items: center; gap: .4rem; }
+    .flow-node { background:rgba(0,15,30,.9); border:1px solid rgba(0,170,255,.3); border-radius:6px; padding:.7rem 1.4rem; font-family:var(--mono); font-size:.8rem; color:var(--dimw); min-width:180px; text-align:center; transition:border-color .3s,box-shadow .3s; cursor:default; }
+    .flow-node:hover { border-color:var(--blue); box-shadow:0 0 20px rgba(0,170,255,.3); color:#fff; }
+    .flow-node.primary { border-color:var(--blue); color:var(--blue); box-shadow:0 0 15px rgba(0,170,255,.2); font-weight:bold; }
+    .flow-node.output { border-color:var(--green); color:var(--green); box-shadow:0 0 15px rgba(0,255,204,.15); }
+    .flow-arrow { color:rgba(0,170,255,.5); font-size:1.3rem; margin:.2rem 0; }
+    .flow-parallel { display:flex; justify-content:center; gap:2rem; flex-wrap:wrap; margin:.5rem 0; }
+    .flow-parallel .fp-col { display:flex; flex-direction:column; align-items:center; gap:.4rem; }
+
+    /* ── FEEDS SECTION ── */
+    .feeds-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1.2rem; margin-top:2rem; }
+    .feed-card { background:rgba(0,15,30,.8); border:1px solid rgba(0,170,255,.12); border-radius:8px; padding:1.4rem; }
+    .feed-name { font-family:var(--head); font-size:.85rem; color:var(--white); margin-bottom:.4rem; letter-spacing:1px; }
+    .feed-desc { color:var(--muted); font-size:.85rem; line-height:1.6; }
+    .feed-status { font-family:var(--mono); font-size:.7rem; margin-top:.8rem; }
+    .feed-status.opt { color:var(--blue); }
+    .feed-status.man { color:var(--green); }
+
+    /* ── INSTALL ── */
+    .install-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:2rem; }
+    .install-card { background:rgba(0,15,30,.8); border:1px solid rgba(0,170,255,.15); border-radius:8px; overflow:hidden; }
+    .icard-head { padding:1rem 1.5rem; background:rgba(0,170,255,.07); border-bottom:1px solid rgba(0,170,255,.15); font-family:var(--head); font-size:.82rem; color:var(--blue); letter-spacing:2px; }
+    .code-wrap { position:relative; }
+    pre.cb { padding:1.5rem; font-family:var(--mono); font-size:.82rem; line-height:2; color:var(--green); overflow-x:auto; white-space:pre-wrap; }
+    pre.cb .cm { color:var(--muted); } pre.cb .ck { color:#fff; } pre.cb .cs { color:#80cfff; }
+    .copy-btn { position:absolute; top:.5rem; right:.5rem; background:rgba(0,170,255,.12); border:1px solid rgba(0,170,255,.3); color:var(--blue); font-family:var(--mono); font-size:.65rem; padding:.2rem .5rem; border-radius:3px; cursor:pointer; transition:background .2s; }
+    .copy-btn:hover { background:rgba(0,170,255,.28); }
+
+    /* ── FOOTER ── */
+    footer { position:relative; z-index:2; border-top:1px solid rgba(0,170,255,.15); padding:3rem 2rem; text-align:center; }
+    .flogo { font-family:var(--head); font-size:1.4rem; font-weight:900; color:var(--blue); text-shadow:0 0 20px var(--blue); margin-bottom:.4rem; }
+    .ftag { font-family:var(--mono); font-size:.78rem; color:var(--muted); margin-bottom:1.5rem; }
+    .flinks { display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+    .flinks a { color:var(--muted); text-decoration:none; font-size:.85rem; transition:color .2s; }
+    .flinks a:hover { color:var(--cyan); }
+    .fcopy { font-family:var(--mono); font-size:.7rem; color:rgba(96,144,176,.5); }
+
+    .glow-div { width:100%; height:1px; background:linear-gradient(90deg,transparent,rgba(0,170,255,.5),transparent); position:relative; z-index:2; }
+
+    .fade-in { opacity:0; transform:translateY(28px); transition:opacity .6s,transform .6s; }
+    .fade-in.visible { opacity:1; transform:translateY(0); }
+
+    @media(max-width:640px){ nav{padding:1rem} .nav-links{display:none} .hero-buttons{flex-direction:column;align-items:center} }
+  </style>
+</head>
+<body>
+
+<canvas id="matrix"></canvas>
+
+<nav>
+  <div class="nav-logo">GHOST <span>REAPER</span></div>
+  <ul class="nav-links">
+    <li><a href="#agents">Agents</a></li>
+    <li><a href="#flow">Flow</a></li>
+    <li><a href="#feeds">Feeds</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="https://github.com/Insider77Circle/Ghost-Reaper" target="_blank" class="nav-cta">GitHub</a></li>
+  </ul>
+</nav>
+
+<section id="hero">
+  <div class="hero-badge">▶ AI CLUSTER · 5 AGENTS · PASSIVE DETECTION</div>
+  <h1 class="hero-title">
+    <span class="ghost">GHOST&nbsp;</span><span class="reaper">REAPER</span>
+  </h1>
+  <p class="hero-sub">// Hunt without footprint. Strike without origin.</p>
+  <p class="hero-desc">
+    Full-spectrum passive threat detection powered by a 5-agent AI cluster.
+    Network anomalies, entropy deviations, behavioral lineage, honeypot triggers —
+    all fused by the Synthesis Oracle into a single, actionable verdict.
+  </p>
+  <div class="hero-buttons">
+    <a href="#install" class="btn btn-primary">Get Started</a>
+    <a href="https://github.com/Insider77Circle/Ghost-Reaper" target="_blank" class="btn btn-outline">View on GitHub</a>
+    <a href="#agents" class="btn btn-outline">Meet the Agents</a>
+  </div>
+
+  <div class="hero-terminal">
+    <div class="tbar">
+      <div class="tdot td-r"></div><div class="tdot td-y"></div><div class="tdot td-g"></div>
+      <span class="ttitle">ghost-reaper — monitoring</span>
+    </div>
+    <div class="tbody" id="hero-body">
+      <span class="tp">ghost-reaper&gt; </span><span class="tc" id="hero-cmd"></span><span class="cursor"></span>
+    </div>
+  </div>
+</section>
+
+<div id="stats">
+  <div class="stat-item"><div class="stat-num" data-target="5">0</div><div class="stat-label">AI Agents</div></div>
+  <div class="stat-item"><div class="stat-num" data-target="3">0</div><div class="stat-label">Threat Feeds</div></div>
+  <div class="stat-item"><div class="stat-num" data-target="12">0</div><div class="stat-label">Detection Methods</div></div>
+  <div class="stat-item"><div class="stat-num" data-target="0">0</div><div class="stat-label" style="white-space:nowrap">False Positives Goal</div></div>
+</div>
+
+<div class="glow-div"></div>
+
+<section id="agents">
+  <div class="stag">// the cluster</div>
+  <h2 class="stitle">Five Agents. <span>One Mind.</span></h2>
+  <p class="ssub">Each agent covers a distinct detection surface. Together they leave no blind spot.</p>
+
+  <div class="agents-grid">
+    <div class="agent-card fade-in">
+      <span class="agent-icon">👁️</span>
+      <div class="agent-role">EYES</div>
+      <div class="agent-name">Network Sentinel</div>
+      <div class="agent-desc">Watches all active connections. Detects C2 beaconing via interval analysis, suspicious port usage, and abnormal connection counts per process.</div>
+      <div class="agent-tags"><span class="tag">Beaconing</span><span class="tag">C2 Detection</span><span class="tag">Port Analysis</span></div>
+    </div>
+    <div class="agent-card fade-in">
+      <span class="agent-icon">🔬</span>
+      <div class="agent-role">HANDS</div>
+      <div class="agent-name">Entropy Detective</div>
+      <div class="agent-desc">Calculates Shannon entropy on files landing in watched directories. High entropy signals encryption, packing, or obfuscation — classic malware hiding.</div>
+      <div class="agent-tags"><span class="tag">Shannon Entropy</span><span class="tag">Payload Analysis</span><span class="tag">Obfuscation</span></div>
+    </div>
+    <div class="agent-card fade-in">
+      <span class="agent-icon">🧠</span>
+      <div class="agent-role">SHADOW</div>
+      <div class="agent-name">Behavioral Analysis</div>
+      <div class="agent-desc">Tracks process lineage and syscall chains. Catches LOLBin abuse, masquerading system processes, and Office/browser apps spawning shells.</div>
+      <div class="agent-tags"><span class="tag">Process Lineage</span><span class="tag">LOLBin</span><span class="tag">Lateral Movement</span></div>
+    </div>
+    <div class="agent-card fade-in">
+      <span class="agent-icon">🪤</span>
+      <div class="agent-role">TRAP</div>
+      <div class="agent-name">Honeypot Overseer</div>
+      <div class="agent-desc">Deploys canary credential files and decoy network listeners. Any access fires an immediate CRITICAL signal — confirms active intruder presence.</div>
+      <div class="agent-tags"><span class="tag">Canary Tokens</span><span class="tag">Decoy Ports</span><span class="tag">Credential Lures</span></div>
+    </div>
+    <div class="agent-card fade-in" style="grid-column:1/-1;max-width:420px;margin:0 auto;">
+      <span class="agent-icon">⚡</span>
+      <div class="agent-role">BRAIN</div>
+      <div class="agent-name">Synthesis Oracle</div>
+      <div class="agent-desc">Receives all signals from the 4 agents, enriches with feed intelligence, and calls your LLM to produce a structured verdict: severity, threat type, IOCs, and remediation steps.</div>
+      <div class="agent-tags"><span class="tag">LLM Fusion</span><span class="tag">IOC Extraction</span><span class="tag">Structured Verdict</span><span class="tag">Any LLM Provider</span></div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-div"></div>
+
+<section id="flow">
+  <div class="stag">// execution flow</div>
+  <h2 class="stitle">The <span>Signal Pipeline</span></h2>
+  <p class="ssub" style="margin:0 auto 3rem;">Four detection streams. One synthesis layer. Zero noise.</p>
+
+  <div class="flow-box fade-in">
+    <div class="flow-parallel">
+      <div class="fp-col">
+        <div class="flow-node primary">👁️ Network Sentinel</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="font-size:.72rem">anomaly flags</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node">🔬 Entropy Detective</div>
+      </div>
+      <div class="fp-col" style="justify-content:center">
+        <div class="flow-node primary">🧠 Behavioral Analysis</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="font-size:.72rem">process lineage</div>
+      </div>
+      <div class="fp-col" style="justify-content:center">
+        <div class="flow-node primary">🪤 Honeypot Overseer</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-node" style="font-size:.72rem">trigger events</div>
+      </div>
+    </div>
+    <div class="flow-arrow" style="font-size:1.8rem">↓</div>
+    <div class="flow-node primary" style="min-width:260px;font-size:.9rem;padding:1rem 2rem">⚡ Synthesis Oracle</div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-node output" style="min-width:260px">📋 Unified Threat Verdict</div>
+  </div>
+</section>
+
+<div class="glow-div"></div>
+
+<section id="feeds">
+  <div class="stag">// threat intelligence</div>
+  <h2 class="stitle">Pluggable <span>Data Feeds</span></h2>
+  <p class="ssub">Bring your own API keys. Every feed is optional — Ghost Reaper degrades gracefully without them. Add custom feeds by dropping a Python file in <code style="color:var(--blue);font-size:.9em">feeds/</code>.</p>
+
+  <div class="feeds-grid">
+    <div class="feed-card fade-in">
+      <div class="feed-name">AbuseIPDB</div>
+      <div class="feed-desc">Community-sourced IP reputation. Abuse confidence score, total reports, ISP, country, Tor status.</div>
+      <div class="feed-status opt">▶ Optional · ABUSEIPDB_API_KEY</div>
+    </div>
+    <div class="feed-card fade-in">
+      <div class="feed-name">VirusTotal</div>
+      <div class="feed-desc">Scan IPs, domains, and file hashes across 70+ AV engines. Malicious/suspicious counts and reputation score.</div>
+      <div class="feed-status opt">▶ Optional · VIRUSTOTAL_API_KEY</div>
+    </div>
+    <div class="feed-card fade-in">
+      <div class="feed-name">Shodan</div>
+      <div class="feed-desc">Internet-wide scan data for IPs. Open ports, org, ISP, known vulnerabilities, hostnames.</div>
+      <div class="feed-status opt">▶ Optional · SHODAN_API_KEY</div>
+    </div>
+    <div class="feed-card fade-in">
+      <div class="feed-name">Custom Feed</div>
+      <div class="feed-desc">Drop any Python file with a <code style="color:var(--blue)">FEED_NAME</code> constant and a <code style="color:var(--blue)">query(indicator)</code> function into <code style="color:var(--blue)">feeds/</code> — auto-discovered at runtime.</div>
+      <div class="feed-status man">▶ Manual · Bring your own source</div>
+    </div>
+  </div>
+</section>
+
+<div class="glow-div"></div>
+
+<section id="install">
+  <div class="stag">// quick start</div>
+  <h2 class="stitle">Deploy in <span>Minutes</span></h2>
+  <p class="ssub">Python 3.11+ required. Any LLM API key accepted — OpenAI, DeepSeek, Groq, Anthropic, Mistral, Ollama, or any OpenAI-compatible endpoint.</p>
+
+  <div class="install-grid">
+    <div class="install-card fade-in">
+      <div class="icard-head">01 · CLONE &amp; INSTALL</div>
+      <div class="code-wrap">
+        <pre class="cb"><span class="cm"># Clone the repository</span>
+<span class="ck">git clone https://github.com/Insider77Circle/Ghost-Reaper.git</span>
+<span class="ck">cd Ghost-Reaper</span>
+
+<span class="cm"># Install dependencies</span>
+<span class="ck">pip install -r requirements.txt</span></pre>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+    </div>
+
+    <div class="install-card fade-in">
+      <div class="icard-head">02 · CONFIGURE</div>
+      <div class="code-wrap">
+        <pre class="cb"><span class="cm"># Copy environment template</span>
+<span class="ck">cp .env.example .env</span>
+
+<span class="cm"># Set your LLM provider + key</span>
+<span class="cm"># Works with OpenAI, DeepSeek, Groq,</span>
+<span class="cm"># Anthropic, Mistral, Ollama, or any</span>
+<span class="cm"># OpenAI-compatible endpoint.</span>
+<span class="cs">LLM_PROVIDER=deepseek</span>
+<span class="cs">LLM_API_KEY=sk-your-key-here</span></pre>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+    </div>
+
+    <div class="install-card fade-in">
+      <div class="icard-head">03 · LAUNCH</div>
+      <div class="code-wrap">
+        <pre class="cb"><span class="cm"># Continuous monitoring mode</span>
+<span class="ck">python main.py</span>
+
+<span class="cm"># Single-pass scan + exit</span>
+<span class="ck">python main.py --scan-once</span>
+
+<span class="cm"># JSON output for pipelines</span>
+<span class="ck">python main.py --scan-once --json</span></pre>
+        <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="flogo">GHOST REAPER</div>
+  <div class="ftag">// Full-Spectrum AI Threat Detection · 5-Agent Cluster</div>
+  <div class="flinks">
+    <a href="https://github.com/Insider77Circle/Ghost-Reaper" target="_blank">GitHub</a>
+    <a href="https://github.com/Insider77Circle/Ghost-Reaper/issues" target="_blank">Issues</a>
+    <a href="https://github.com/Insider77Circle/Ghost-Reaper/blob/main/LICENSE" target="_blank">License</a>
+  </div>
+  <div class="fcopy">© 2025 Insider77Circle · MIT License · Bring your own LLM</div>
+</footer>
+
+<script>
+// ── MATRIX RAIN (blue) ──
+(function(){
+  const c=document.getElementById('matrix'), ctx=c.getContext('2d');
+  let W,H,cols,drops;
+  const ch='ｦｧｨｩｪｫｬｭｮｯアイウエオカキクケコサシスセソタチツテト0123456789ABCDEF';
+  function init(){ W=c.width=window.innerWidth; H=c.height=window.innerHeight; cols=Math.floor(W/18); drops=Array(cols).fill(0).map(()=>Math.random()*-100); }
+  function draw(){
+    ctx.fillStyle='rgba(0,10,20,.05)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#00aaff'; ctx.font='14px monospace';
+    for(let i=0;i<cols;i++){
+      ctx.fillText(ch[Math.floor(Math.random()*ch.length)],i*18,drops[i]*18);
+      if(drops[i]*18>H&&Math.random()>.975) drops[i]=0;
+      drops[i]++;
+    }
+  }
+  init(); window.addEventListener('resize',init); setInterval(draw,45);
+})();
+
+// ── HERO TYPEWRITER ──
+(function(){
+  const seqs=[
+    {cmd:'start --mode continuous',
+     outs:['<span class="ti">[*] Network Sentinel online — watching 847 connections</span>',
+           '<span class="ti">[*] Entropy Detective online — watching 3 directories</span>',
+           '<span class="ti">[*] Behavioral Analysis online — monitoring 284 processes</span>',
+           '<span class="to">[+] Honeypot deployed — 3 canary files · 3 decoy ports active</span>']},
+    {cmd:'status',
+     outs:['<span class="to">[+] All agents nominal · Last scan: 0 threats detected</span>',
+           '<span class="ti">[*] Feeds: AbuseIPDB · VirusTotal · Shodan</span>']},
+    {cmd:'scan-once --json',
+     outs:['<span class="ti">[*] Running full cluster scan...</span>',
+           '<span class="tw">[!] BEHAVIORAL: LOLBin detected — certutil.exe spawned by outlook.exe</span>',
+           '<span class="tp">[!!] SYNTHESIS ORACLE — Severity: HIGH · Credential theft attempt</span>']},
+  ];
+  let si=0,ci=0;
+
+  function getCmd(){ return document.getElementById('hero-cmd'); }
+  function getBody(){ return document.getElementById('hero-body'); }
+
+  function typeChar(){
+    const el=getCmd(); if(!el) return;
+    const seq=seqs[si];
+    if(ci<seq.cmd.length){ el.textContent+=seq.cmd[ci++]; setTimeout(typeChar,55); }
+    else{ let oi=0; setTimeout(()=>showOut(seq,oi),600); }
+  }
+
+  function showOut(seq,oi){
+    const body=getBody(); if(!body) return;
+    if(oi<seq.outs.length){
+      const d=document.createElement('div'); d.innerHTML=seq.outs[oi];
+      const cursor=body.querySelector('.cursor');
+      if(cursor) body.insertBefore(d,cursor); else body.appendChild(d);
+      setTimeout(()=>showOut(seq,oi+1),520);
+    } else { setTimeout(nextSeq,2200); }
+  }
+
+  function nextSeq(){
+    si=(si+1)%seqs.length; ci=0;
+    const body=getBody(); if(!body) return;
+    body.innerHTML=`<span class="tp">ghost-reaper&gt; </span><span class="tc" id="hero-cmd"></span><span class="cursor"></span>`;
+    setTimeout(typeChar,400);
+  }
+
+  setTimeout(typeChar,1000);
+})();
+
+// ── STAT COUNTERS ──
+(function(){
+  let done=false;
+  new IntersectionObserver(entries=>{
+    if(entries[0].isIntersecting&&!done){
+      done=true;
+      document.querySelectorAll('.stat-num[data-target]').forEach(el=>{
+        const t=+el.dataset.target; let c=0; const step=Math.ceil(Math.max(t,1)/40);
+        const id=setInterval(()=>{ c=Math.min(c+step,t); el.textContent=c; if(c>=t)clearInterval(id); },40);
+      });
+    }
+  }).observe(document.getElementById('stats'));
+})();
+
+// ── SCROLL FADE ──
+new IntersectionObserver(e=>e.forEach(x=>{ if(x.isIntersecting) x.target.classList.add('visible'); }),{threshold:.15})
+  .observe && document.querySelectorAll('.fade-in').forEach(e=>
+    new IntersectionObserver(([x])=>{ if(x.isIntersecting) x.target.classList.add('visible'); },{threshold:.15}).observe(e)
+  );
+
+// ── COPY ──
+function copyCode(btn){
+  navigator.clipboard.writeText(btn.previousElementSibling.innerText).then(()=>{ btn.textContent='COPIED!'; setTimeout(()=>btn.textContent='COPY',2000); });
+}
+</script>
+</body>
+</html>

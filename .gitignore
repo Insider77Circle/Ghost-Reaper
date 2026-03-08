@@ -1,0 +1,9 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+.ghost-reaper/
+data/*.json
+*.log
+.venv/
+venv/
