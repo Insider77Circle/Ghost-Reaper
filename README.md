@@ -1,4 +1,4 @@
-# Ghost Reaper 👻
+# Ghost Reaper 👻 > *Hunt without footprint. Strike without origin.* Five AI agents watch your machine — network connections, file entropy, process behavior, honeypot tripwires — and one LLM synthesis layer fuses it all into a single threat verdict. No alert spam. Passive by design: it watches, never touches. ```bash git clone https://github.com/Insider77Circle/Ghost-Reaper.git && cd Ghost-Reaper pip install -r requirements.txt cp .env.example .env   # set LLM_PROVIDER + LLM_API_KEY python main.py --scan-once --json   # one snapshot, pipe it anywhere ```
 
 **Full-Spectrum AI Threat Detection · 5-Agent Cluster**
 
