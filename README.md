@@ -1,290 +1,210 @@
-# Ghost Reaper 👻 > *Hunt without footprint. Strike without origin.* Five AI agents watch your machine — network connections, file entropy, process behavior, honeypot tripwires — and one LLM synthesis layer fuses it all into a single threat verdict. No alert spam. Passive by design: it watches, never touches. ```bash git clone https://github.com/Insider77Circle/Ghost-Reaper.git && cd Ghost-Reaper pip install -r requirements.txt cp .env.example .env   # set LLM_PROVIDER + LLM_API_KEY python main.py --scan-once --json   # one snapshot, pipe it anywhere ```
+# 🌐💻 MIRAGE — Cyberpunk Cyber Range
 
-**Full-Spectrum AI Threat Detection · 5-Agent Cluster**
-
-[![Python Version](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub Stars](https://img.shields.io/github/stars/Insider77Circle/Ghost-Reaper?style=social)](https://github.com/Insider77Circle/Ghost-Reaper)
-
-> *"Hunt without footprint. Strike without origin."*
-
-Ghost Reaper is a passive AI-powered threat detection system built on a 5-agent cluster architecture. Each agent monitors a distinct attack surface. All signals are fused by the Synthesis Oracle — an LLM-powered analysis layer that delivers structured, actionable threat verdicts with zero noise.
-
----
-
-## Why Ghost Reaper?
-
-Traditional detection tools generate floods of alerts with little context, forcing analysts to manually triage everything. Ghost Reaper takes a different approach:
-
-- **Signal fusion over alert spam** — four detection agents feed one synthesis layer, which reasons across all signals simultaneously before issuing a verdict
-- **LLM-powered analysis** — the Synthesis Oracle doesn't just flag threats, it explains them, identifies IOCs, and recommends remediation steps
-- **Bring your own LLM** — works with any provider: OpenAI, DeepSeek, Groq, Anthropic, Mistral, Ollama, or any OpenAI-compatible endpoint
-- **Passive by design** — monitors without interfering, leaves no network footprint
-- **Pluggable intelligence feeds** — add AbuseIPDB, VirusTotal, Shodan, or your own custom feed with one Python file
-
----
-
-## The Agent Cluster
-
-Ghost Reaper runs five specialized agents in parallel. Each owns a detection domain.
-
-### 👁️ Network Sentinel — *EYES*
-Watches all active network connections using live system data.
-
-**Detects:**
-- **C2 beaconing** — analyzes connection intervals to identify regular-heartbeat patterns characteristic of command-and-control malware
-- **Suspicious port activity** — flags connections to known C2/shell ports (4444, 31337, 9001, IRC ports, etc.)
-- **High connection counts** — catches processes with abnormal simultaneous connection counts, indicating scanners or botnet activity
-- **Process-to-connection mapping** — ties every suspicious connection back to the owning process
-
----
-
-### 🔬 Entropy Detective — *HANDS*
-Calculates Shannon entropy on files landing in watched directories.
-
-**Detects:**
-- **Packed executables** — malware commonly uses packers (UPX, custom) that produce near-random byte distributions
-- **Encrypted payloads** — ransomware staging files, encrypted shellcode loaders, and exfiltration archives all score high entropy
-- **Obfuscated scripts** — heavily encoded PowerShell, VBScript, and JavaScript frequently exceeds natural language entropy levels
-- **Configurable thresholds and watch paths** — tune sensitivity and add directories via `.env`
-
-Entropy is scored out of 8.0. Ghost Reaper flags at 7.2+ (suspicious) and 7.6+ (HIGH severity).
-
----
-
-### 🧠 Behavioral Analysis — *SHADOW*
-Tracks process creation chains and identifies known abuse patterns.
-
-**Detects:**
-- **Suspicious parent-child chains** — Office apps, browsers, and PDF readers that spawn `cmd.exe`, `powershell.exe`, `wscript.exe`, or other shell processes. Classic macro and drive-by exploit signatures
-- **LOLBin (Living-off-the-Land Binary) abuse** — monitors execution of `certutil.exe`, `bitsadmin.exe`, `mshta.exe`, `regsvr32.exe`, `msbuild.exe`, and other commonly abused Windows binaries
-- **Process masquerading** — catches malware running as `svchost.exe`, `lsass.exe`, or other system processes from unexpected filesystem paths (a common rootkit technique)
-- **Lateral movement indicators** — correlates process activity across the system to identify unusual propagation patterns
-
----
-
-### 🪤 Honeypot Overseer — *TRAP*
-Deploys canary tokens and decoy listeners. Any access is a confirmed threat.
-
-**Deploys:**
-- **Canary credential files** — fake `credentials.txt`, `aws_keys.json`, `db_config.yml`, `id_rsa`, and backup codes placed in a configurable directory. Legitimate processes never touch these
-- **Decoy network listeners** — opens configurable ports (default: 21, 23, 3389) that serve fake banners. Any connection is an active intruder, not a false positive
-- **Mtime/atime monitoring** — detects file access, modification, or deletion of canary assets
-
-Any honeypot trigger fires a **CRITICAL** severity signal immediately — bypassing the normal synthesis interval for instant escalation.
-
----
-
-### ⚡ Synthesis Oracle — *BRAIN*
-The intelligence layer that makes Ghost Reaper more than a collection of scanners.
-
-**Process:**
-1. Receives signals from all four agents
-2. Enriches indicators (IPs, hashes) against configured threat feeds
-3. Sends a structured prompt to your configured LLM
-4. Returns a complete threat verdict
-
-**Verdict includes:**
-- **Severity** — CLEAN / LOW / MEDIUM / HIGH / CRITICAL
-- **Threat type** — e.g. Ransomware Staging, C2 Beaconing, Credential Harvesting, Lateral Movement
-- **Confidence level** — LOW / MEDIUM / HIGH
-- **Contributing sources** — which agents triggered
-- **Technical analysis** — multi-paragraph explanation of what happened and what it means
-- **IOCs** — indicators of compromise extracted from the signals
-- **Recommended actions** — concrete remediation steps, not generic advice
-
----
-
-## Use Cases
-
-| Scenario | How Ghost Reaper Helps |
-|---|---|
-| **SOC monitoring** | Run continuously alongside your SIEM. Ghost Reaper surfaces behavioral and entropy signals that signature-based tools miss |
-| **Incident response** | `--scan-once --json` gives a rapid structured snapshot of current system state for IR triage |
-| **Malware analysis lab** | Drop samples into watched directories, execute them in a VM — Entropy Detective and Behavioral Analysis capture the execution profile |
-| **Red team detection gap assessment** | Run Ghost Reaper against your own infrastructure during an authorized engagement to see what it catches |
-| **Developer security testing** | Monitor your dev environment for dependency confusion attacks, supply chain compromises, or rogue build scripts |
-| **Honeypot research** | Customize canary files and decoy ports to study attacker behavior and tool signatures |
-
----
-
-## LLM Provider Support
-
-Ghost Reaper works with any LLM that exposes an OpenAI-compatible API, plus native Anthropic support.
-
-| Provider | `LLM_PROVIDER` value | Notes |
-|---|---|---|
-| OpenAI | `openai` | GPT-4o, GPT-4o-mini, etc. |
-| DeepSeek | `deepseek` | deepseek-chat, deepseek-reasoner |
-| Groq | `groq` | Fast inference — Llama 3, Mixtral |
-| Together AI | `together` | Wide model selection |
-| Mistral | `mistral` | mistral-large, mistral-small |
-| Anthropic | `anthropic` | Claude Sonnet, Haiku, Opus |
-| Ollama | `ollama` | Local models — fully offline |
-| Custom | `custom` | Set `LLM_BASE_URL` to any endpoint |
-
----
-
-## Threat Intelligence Feeds
-
-All feeds are optional. Ghost Reaper works without any feeds — they add enrichment context to the Synthesis Oracle's analysis.
-
-| Feed | What it adds | Key required |
-|---|---|---|
-| **AbuseIPDB** | Abuse confidence score, report count, ISP, Tor flag | `ABUSEIPDB_API_KEY` |
-| **VirusTotal** | Multi-AV scan results for IPs, domains, file hashes | `VIRUSTOTAL_API_KEY` |
-| **Shodan** | Open ports, org, known CVEs, hostnames for IPs | `SHODAN_API_KEY` |
-| **Custom** | Drop a Python file in `feeds/` with `FEED_NAME` and `query(indicator)` | Your own |
-
----
-
-## Installation
+A honeypot that fights back with AI. MIRAGE simulates SSH, FTP, and HTTP/S
+services behind a neon-soaked terminal UI, and uses Kimi AI to generate
+realistic, stateful responses to whoever connects — EASY mode plays
+vulnerable, HARD mode plays hardened. Built for red team practice and
+security training.
 
 ```bash
-# Clone
-git clone https://github.com/Insider77Circle/Ghost-Reaper.git
-cd Ghost-Reaper
+git clone https://github.com/Insider77Circle/MIRAGE.git && cd MIRAGE
+pip install -r requirements.txt
+cp .env.example .env   # add your Kimi API key
+sudo python3 mirage_v3_cyberpunk.py
+```
+
+Then: `ssh root@localhost -p 22` — and watch it lie to you beautifully.
+
+## 🎯 What is Mirage V3?
+
+**Mirage V3** is a cutting-edge cyber range simulator that combines **AI-powered response generation** with **stunning cyberpunk aesthetics**. Designed for safe red team practice and security education, it creates dynamic, realistic network responses using the Kimi AI API.
+
+<div align="center">
+<img src="docs/images/mirage-banner.png" alt="Mirage V3 Banner" width="800"/>
+</div>
+
+## ✨ Key Features
+
+### 🤖 AI-Powered Intelligence
+- **Dynamic Response Generation**: Kimi AI creates protocol-appropriate responses in real-time
+- **Contextual Awareness**: Maintains state across connections and adapts behavior
+- **Difficulty Modes**: EASY (vulnerable) vs HARD (security-conscious) responses
+- **Burp Suite Integration**: Specialized handling for web vulnerability testing
+
+### 🌐 Multi-Protocol Simulation
+- **Port Coverage**: SSH (22), FTP (21), HTTP/HTTPS (80, 443, 8080)
+- **Realistic Banners**: Convincing service responses for each protocol
+- **Async Architecture**: Non-blocking I/O with asyncio for performance
+- **State Management**: Global context maintains consistency across sessions
+
+### 🎨 Immersive Cyberpunk Interface
+- **Terminal TUI**: Rich-based live dashboard with neon aesthetics
+- **Web Dashboard**: HTML5 interface with real-time updates
+- **Live Metrics**: CPU, memory, threat level gauges with simulated data
+- **Connection Monitoring**: Real-time connection history and AI activity logs
+
+### 📊 Asset Fabrication
+- **Fake Documents**: Generates Excel budgets and Word documents
+- **Virtual File System**: Realistic file system with fabricated content
+- **Dynamic Generation**: Creates assets based on context and interactions
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.10+
+- sudo/admin privileges (for privileged ports)
+- Kimi API key
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Insider77Circle/MIRAGE.git
+cd MIRAGE
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure
+# Configure environment
 cp .env.example .env
-# Edit .env — set LLM_PROVIDER, LLM_API_KEY, LLM_MODEL
-# Optionally add feed API keys
+# Edit .env and add your Kimi API key
+
+# Run with sudo (required for privileged ports)
+sudo python3 mirage_v3_cyberpunk.py
 ```
 
----
+## 📊 System Architecture
 
-## Configuration
+<div align="center">
+<img src="docs/images/architecture-flowchart.png" alt="Mirage Architecture" width="600"/>
+</div>
 
-All configuration lives in `.env`. Copy `.env.example` to get started.
+### Data Flow
+1. **Network Connection** → Received on configured port
+2. **Input Analysis** → Context prepared for AI processing  
+3. **AI Generation** → Kimi API creates appropriate response
+4. **Response Formatting** → Protocol-specific formatting applied
+5. **Client Reply** → Dynamic response sent back
+6. **UI Update** → Terminal and web interfaces updated
 
-```env
-# Required
-LLM_PROVIDER=openai          # or deepseek, groq, anthropic, mistral, ollama, custom
-LLM_API_KEY=sk-...
-LLM_MODEL=gpt-4o
+## 🎮 Usage Examples
 
-# Optional feeds
-ABUSEIPDB_API_KEY=
-VIRUSTOTAL_API_KEY=
-SHODAN_API_KEY=
-
-# Optional tuning
-SENTINEL_INTERVAL=15         # seconds between network scans
-ENTROPY_INTERVAL=30          # seconds between entropy scans
-BEHAVIOR_INTERVAL=20         # seconds between process scans
-HONEYPOT_INTERVAL=10         # seconds between canary checks
-ENTROPY_WATCH_DIRS=/tmp,/home/user/downloads   # extra dirs to watch
-HONEYPOT_PORTS=21,23,3389   # decoy listener ports
-```
-
----
-
-## Usage
-
+### Basic Testing
 ```bash
-# Continuous monitoring — runs until Ctrl+C
-python main.py
+# Test SSH service
+ssh root@localhost -p 22
 
-# Single-pass scan — useful for cron jobs or CI pipelines
-python main.py --scan-once
+# Test web services
+curl http://localhost:80
+curl http://localhost:8080
 
-# JSON output — pipe into SIEM, Slack webhook, alerting system
-python main.py --scan-once --json
+# Test FTP service
+ftp localhost 21
 ```
 
-### Adding a Custom Feed
+### Advanced Testing
+```bash
+# SQL Injection test (EASY mode)
+curl -X POST http://localhost:8080/login -d "username=admin' OR 1=1--&password=test"
 
-Create any Python file in `feeds/` with two things:
+# Directory traversal test
+curl http://localhost:8080/../../../etc/passwd
 
+# XSS test
+curl -X POST http://localhost:8080/search -d "q=<script>alert(1)</script>"
+```
+
+## 🛡️ Security Features
+
+- **Safe Environment**: All responses are AI-generated, no real system access
+- **Configurable Exposure**: Adjustable difficulty and response generation
+- **Educational Purpose**: Designed for learning and authorized testing only
+- **Isolated Operation**: Self-contained with no external dependencies beyond API
+
+## 📈 Performance Metrics
+
+<div align="center">
+<img src="docs/images/performance-flowchart.png" alt="Performance Metrics" width="500"/>
+</div>
+
+- **Response Time**: < 2 seconds for AI-generated content
+- **Concurrent Connections**: Handles multiple simultaneous clients
+- **Memory Usage**: Efficient state management with circular buffers
+- **CPU Simulation**: Dynamic load simulation for realistic metrics
+
+## 🎨 Customization
+
+### Changing Colors
 ```python
-FEED_NAME = "my_feed"
-
-def query(indicator: str) -> dict:
-    # indicator is an IP, domain, or file hash
-    # return any dict — it gets passed to the Synthesis Oracle
-    ...
+# Edit color constants in mirage_v3_cyberpunk.py
+C_CB = "bright_cyan"      # Main borders
+C_GN = "bright_green"     # Success/Go  
+C_RD = "bright_red"       # Alerts/Errors
+C_MG = "bright_magenta"   # Highlights
 ```
 
-Ghost Reaper auto-discovers and loads it on next startup. No registration required.
+### Adding Vulnerabilities
+Modify the `SYSTEM_PROMPT` in `mirage_core.py` to include new attack patterns and responses.
+
+### Custom Assets
+Extend the `Fabricator` class to generate additional file types and content.
+
+## 🔍 Technical Specifications
+
+### Core Components
+- **MirageAI Class**: Handles AI communication and response generation
+- **Fabricator Class**: Generates fake assets and documents
+- **TUI System**: Rich-based terminal interface with live rendering
+- **Async Server**: Multi-protocol network server with connection handling
+
+### Dependencies
+- `openai>=1.0.0` - AI client library
+- `faker>=15.0.0` - Data generation
+- `pandas>=1.5.0` - Data manipulation
+- `python-docx>=0.8.11` - Document creation
+- `rich>=13.0.0` - Terminal UI framework
+
+## 📚 Documentation
+
+- **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
+- **[API Reference](docs/API.md)** - Core classes and methods
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - System design and flow
+- **[Customization Guide](docs/CUSTOMIZATION.md)** - How to modify and extend
+- **[Security Guide](docs/SECURITY.md)** - Security considerations and best practices
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Ways to Contribute
+- 🐛 Report bugs and issues
+- 💡 Suggest new features and improvements
+- 📝 Improve documentation
+- 🎨 Create new themes and color schemes
+- 🔧 Submit pull requests
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## ⚠️ Disclaimer
+
+**IMPORTANT**: This tool is for educational and authorized testing purposes only. Always ensure you have permission before testing any systems. The authors are not responsible for misuse.
+
+## 🙏 Acknowledgments
+
+- **Kimi AI** for providing the powerful language model API
+- **Rich Library** for the amazing terminal UI framework
+- **Cyberpunk Community** for inspiration and aesthetic guidance
+- **Security Researchers** who contribute to making the digital world safer
 
 ---
 
-## Architecture
+<div align="center">
+<h3>🌟 Ready to dive into the cyberpunk matrix? </h3>
+<p><strong>Mirage V3</strong> awaits your command.</p>
+</div>
 
-```
-                    ┌─────────────────────┐
-                    │   GhostReaper       │  ← Orchestrator
-                    │   Orchestrator      │
-                    └──────────┬──────────┘
-                               │ spawns (threaded)
-        ┌──────────────────────┼──────────────────────┐
-        │                      │                      │
- ┌──────▼──────┐      ┌────────▼──────┐      ┌───────▼──────┐
- │  Network    │      │   Entropy     │      │  Behavioral  │
- │  Sentinel   │      │   Detective   │      │  Analysis    │
- └──────┬──────┘      └────────┬──────┘      └───────┬──────┘
-        │                      │                      │
-        └──────────────────────┼──────────────────────┘
-                               │ ThreatSignals
-                    ┌──────────▼──────────┐
-                    │  Honeypot Overseer  │
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │  Synthesis Oracle   │  ← LLM + Feeds
-                    └──────────┬──────────┘
-                               │
-                    ┌──────────▼──────────┐
-                    │   Threat Verdict    │  → stdout / JSON
-                    └─────────────────────┘
-```
-
----
-
-## Project Structure
-
-```
-Ghost-Reaper/
-├── main.py                        # Entry point — CLI interface
-├── requirements.txt
-├── .env.example                   # Configuration template
-├── agents/
-│   ├── network_sentinel.py        # C2 detection, beaconing analysis
-│   ├── entropy_detective.py       # Shannon entropy file scanning
-│   ├── behavioral_analysis.py     # Process lineage, LOLBin detection
-│   ├── honeypot_overseer.py       # Canary tokens, decoy listeners
-│   └── synthesis_oracle.py       # LLM-powered threat fusion
-├── core/
-│   ├── orchestrator.py            # Agent coordination + signal routing
-│   ├── llm_client.py              # Universal LLM client
-│   └── feed_manager.py            # Auto-discovery feed loader
-├── feeds/
-│   └── examples/
-│       ├── abuseipdb_feed.py
-│       ├── virustotal_feed.py
-│       └── shodan_feed.py
-└── docs/
-    └── index.html                 # GitHub Pages site
-```
-
----
-
-## Requirements
-
-- Python 3.11+
-- `psutil` — process and network monitoring
-- `python-dotenv` — environment configuration
-- Any LLM API key (see supported providers above)
-
----
-
-## License
-
-MIT — free to use, modify, and distribute.
-
----
-
-*Built by [Insider77Circle](https://github.com/Insider77Circle)*
+<div align="center">
+<img src="docs/images/cyberpunk-matrix.gif" alt="Cyberpunk Matrix" width="400"/>
+</div>
