@@ -21,6 +21,12 @@ python main.py --scan-once --json   # one snapshot, pipe it anywhere
 
 Ghost Reaper is an AI-powered threat detection and response system built on a multi-agent cluster architecture. Each agent monitors a distinct attack surface. All signals are deduplicated, scored, and fused by the Defensive Planner — an LLM-powered analysis layer with persistent memory — which delivers structured, actionable threat verdicts with zero noise. In STRIKE mode it goes further: hunting hypotheses, generating micro-patches, and executing only what a deterministic gate has verified in dry-run first.
 
+<p align="center">
+  <img src="docs/demo.gif" alt="Ghost Reaper terminal demo — scan, verdict, verified patch" width="900">
+</p>
+
+*One pass: the cluster catches a beacon + a touched canary, the Planner validates the exposure, the Gate shadow-verifies the patch — then, and only then, it executes.*
+
 ---
 
 ## Why Ghost Reaper?
@@ -165,6 +171,10 @@ The load-bearing wall of v2. Every micro-patch passes here before execution — 
 
 Verdicts are PASS or FAIL with the measured evidence attached. **No LLM sits in the gate.** On FAIL, the patch dies and the exposure returns to the Planner to re-plan or escalate.
 
+<p align="center">
+  <img src="docs/verification-gate.png" alt="The Verification Gate — no patch ships unverified" width="860">
+</p>
+
 ### ♻️ Execution & Graph State Update
 
 PASSed patches are applied with scoped, per-target credentials; every apply is journaled (intent, patch id, gate verdict id, result). Outcomes write back to the State Graph immediately — and post-patch telemetry is watched: if the exposure's signature persists, the exposure reopens. Any applied patch can be rolled back from its journal entry at any time.
@@ -306,6 +316,10 @@ Ghost Reaper auto-discovers and loads it on next startup. No registration requir
 
 ## Architecture
 
+<p align="center">
+  <img src="docs/v2-loop.png" alt="Ghost Reaper v2 — the full loop" width="900">
+</p>
+
 ```
    ┌──────────────┬────────────────┬────────────────┬──────────────┐
    │   NETWORK    │    ENTROPY     │   BEHAVIORAL   │   HONEYPOT   │
@@ -378,7 +392,10 @@ Ghost-Reaper/
 │       ├── virustotal_feed.py
 │       └── shodan_feed.py
 └── docs/
-    └── index.html                 # GitHub Pages site
+    ├── index.html                 # GitHub Pages site
+    ├── demo.gif                   # Terminal demo — scan → verdict → verified patch
+    ├── v2-loop.png                # v2 loop architecture diagram
+    └── verification-gate.png      # Verification Gate flow diagram
 ```
 
 ---
