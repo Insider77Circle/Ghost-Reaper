@@ -211,14 +211,14 @@ Ghost Reaper works with any LLM that exposes an OpenAI-compatible API, plus nati
 
 | Provider | `LLM_PROVIDER` value | Notes |
 | --- | --- | --- |
-| OpenAI | `openai` | GPT-4o, GPT-4o-mini, etc. |
-| DeepSeek | `deepseek` | deepseek-chat, deepseek-reasoner |
-| Groq | `groq` | Fast inference — Llama 3, Mixtral |
-| Together AI | `together` | Wide model selection |
-| Mistral | `mistral` | mistral-large, mistral-small |
-| Anthropic | `anthropic` | Claude Sonnet, Haiku, Opus |
-| Ollama | `ollama` | Local models — fully offline |
-| Custom | `custom` | Set `LLM_BASE_URL` to any endpoint |
+| OpenAI | `openai` | GPT-6.2 Astra, GPT-6.2 Sol, GPT-6.1 Terra, GPT-6 Luna |
+| DeepSeek | `deepseek` | DeepSeek V4 Pro, V4.1-Flash — open weights (MIT) |
+| Groq | `groq` | Fast inference — Llama 4, Qwen3.8, gpt-oss-120b, Kimi K3 |
+| Together AI | `together` | Wide open-weight selection — Kimi K3.1 Pro, GLM-5.3, DeepSeek V4, Qwen3.8 |
+| Mistral | `mistral` | Mistral Large 4 and the current Mistral family |
+| Anthropic | `anthropic` | Claude Fable 5.2, Opus 5.5, Sonnet 5.5, Haiku 5.5 |
+| Ollama | `ollama` | Local open-weight models — Qwen3.8-27B, Gemma 4 31B, gpt-oss-120b, Llama 4 Scout — fully offline |
+| Custom | `custom` | Set `LLM_BASE_URL` to any OpenAI-compatible endpoint — incl. Gemini 4 Carbon / Argon and Grok 4.7 |
 
 ---
 
@@ -261,7 +261,7 @@ All configuration lives in `.env`. Copy `.env.example` to get started.
 # Required
 LLM_PROVIDER=openai          # or deepseek, groq, anthropic, mistral, ollama, custom
 LLM_API_KEY=sk-...
-LLM_MODEL=gpt-4o
+LLM_MODEL=gpt-6.2-sol
 
 # Optional feeds
 ABUSEIPDB_API_KEY=
